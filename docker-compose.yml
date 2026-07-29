@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: schemeseva-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: schemeseva
+
+  backend:
+    build: ./backend
+    container_name: schemeseva-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/schemeseva
+      APP_JWT_SECRET: SchemeSeva2024SecretKeyForJWTTokenGenerationMustBe256BitsLong!
+      APP_JWT_EXPIRATION: 86400000
+      APP_CORS_ALLOWED_ORIGINS: http://localhost
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+  frontend:
+    build: ./frontend
+    container_name: schemeseva-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
